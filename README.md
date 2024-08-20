@@ -15,9 +15,10 @@ Video Paragraph Grounding (VPG) aims to precisely locate the most appropriate mo
 
 
 #### Main results on ActivityNet Captions and Charades-STA
-
+![alt text](images/t1.png)
 
 #### Main results on TACoS
+<img src="images/t2.png" alt="Main results on TACoS" width="550">
 
 
 ## Prerequisites
