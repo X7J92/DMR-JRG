@@ -20,56 +20,24 @@ Video Paragraph Grounding (VPG) aims to precisely locate the most appropriate mo
 #### Main results on TACoS
 <img src="images/t2.png" alt="Main results on TACoS" width="550">
 
+## Dataset
+Please download the visual features from the official website of ActivityNet: [Official C3D Feature](http://activity-net.org/download.html). And you can download preprocessed annotation files [here](https://github.com/baopj/DenseEventsGrounding/blob/main/DepNet_ANet_Release/files_/acnet_annot.zip). 
 
 ## Prerequisites
-- pytorch 1.1.0
-- python 3.7
+- python 3.5
+- pytorch 1.4.0
 - torchtext
 - easydict
 - terminaltables
 
-
-## Quick Start
-
-Please download the visual features from [box](https://rochester.box.com/s/8znalh6y5e82oml2lr7to8s6ntab6mav) or [dropbox](https://www.dropbox.com/sh/dszrtb85nua2jqe/AABGAEQhPtqBIRpGPY3gZey6a?dl=0) and save it to the `data/` folder. 
-
-
-#### Training
+## Training
 Use the following commands for training:
 ```
-# Evaluate "Pool" in Table 1
-python moment_localization/train.py --cfg experiments/charades/2D-TAN-16x16-K5L8-pool.yaml --verbose
-# Evaluate "Conv" in Table 1
-python moment_localization/train.py --cfg experiments/charades/2D-TAN-16x16-K5L8-conv.yaml --verbose
-
-# Evaluate "Pool" in Table 2
-python moment_localization/train.py --cfg experiments/activitynet/2D-TAN-64x64-K9L4-pool.yaml --verbose
-# Evaluate "Conv" in Table 2
-python moment_localization/train.py --cfg experiments/activitynet/2D-TAN-64x64-K9L4-conv.yaml --verbose
-
-# Evaluate "Pool" in Table 3
-python moment_localization/train.py --cfg experiments/tacos/2D-TAN-128x128-K5L8-pool.yaml --verbose
-# Evaluate "Conv" in Table 3
-python moment_localization/train.py --cfg experiments/tacos/2D-TAN-128x128-K5L8-conv.yaml --verbose
+cd moment_localization && export CUDA_VISIBLE_DEVICES=0
+python dense_train.py --verbose --cfg ../experiments/dense_activitynet/acnet.yaml
 ```
-
-#### Testing
-Our trained model are provided in [box](https://rochester.box.com/s/5cfp7a5snvl9uky30bu7mn1cb381w91v) or [dropbox](https://www.dropbox.com/sh/27i8wvwk9cw521f/AAA4FJVDFVQZSjBoWC2x8NAIa?dl=0). Please download them to the `checkpoints` folder.
-
-Then, run the following commands for evaluation: 
+## test
+Use the following commands for test:
 ```
-# Evaluate "Pool" in Table 1
-python moment_localization/test.py --cfg experiments/charades/2D-TAN-16x16-K5L8-pool.yaml --verbose --split test
-# Evaluate "Conv" in Table 1
-python moment_localization/test.py --cfg experiments/charades/2D-TAN-16x16-K5L8-conv.yaml --verbose --split test
-
-# Evaluate "Pool" in Table 2
-python moment_localization/test.py --cfg experiments/activitynet/2D-TAN-64x64-K9L4-pool.yaml --verbose --split test
-# Evaluate "Conv" in Table 2
-python moment_localization/test.py --cfg experiments/activitynet/2D-TAN-64x64-K9L4-conv.yaml --verbose --split test
-
-# Evaluate "Pool" in Table 3
-python moment_localization/test.py --cfg experiments/tacos/2D-TAN-128x128-K5L8-pool.yaml --verbose --split test
-# Evaluate "Conv" in Table 3
-python moment_localization/test.py --cfg experiments/tacos/2D-TAN-128x128-K5L8-conv.yaml --verbose --split test
-```
+cd moment_localization && export CUDA_VISIBLE_DEVICES=0
+python best_test.py --verbose --cfg ../experiments/dense_activitynet/acnet.yaml
