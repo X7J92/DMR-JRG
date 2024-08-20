@@ -9,7 +9,7 @@ Video Paragraph Grounding (VPG) aims to precisely locate the most appropriate mo
 - :beers: Our paper has been submitted to the TMM.
 
 ## Framework
-![alt text](imgs/pipeline.jpg)
+![alt text](images/03.png)
 
 ## Main Results
 
