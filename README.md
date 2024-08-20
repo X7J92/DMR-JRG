@@ -14,17 +14,11 @@ Video Paragraph Grounding (VPG) aims to precisely locate the most appropriate mo
 ## Main Results
 
 
-#### Main results on ActivityNet Captions 
-| Method | Rank1@0.3 | Rank1@0.5 | Rank1@0.7 | Rank5@0.3 | Rank5@0.5 | Rank5@0.7 |
-| ---- |:-------------:| :-----:|:-----:|:-----:|:-----:|:-----:|
-| Pool | 59.45 | 44.51 | 26.54 | 85.53 | 77.13 | 61.96 |
-| Conv | 58.75 | 44.05 | 27.38 | 85.65 | 76.65 | 62.26 |
+#### Main results on ActivityNet Captions and Charades-STA
+
 
 #### Main results on TACoS
-| Method | Rank1@0.1 | Rank1@0.3 | Rank1@0.5 | Rank5@0.1 | Rank5@0.3 | Rank5@0.5 |
-| ---- |:-------------:| :-----:|:-----:|:-----:|:-----:|:-----:|
-| Pool | 47.59 | 37.29 | 25.32 | 70.31 | 57.81 | 45.04 |
-| Conv | 46.39 | 35.17 | 25.17 | 74.46 | 56.99 | 44.24 |
+
 
 ## Prerequisites
 - pytorch 1.1.0
