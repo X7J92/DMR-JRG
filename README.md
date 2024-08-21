@@ -25,8 +25,19 @@ Abstract:Video Paragraph Grounding (VPG) aims to precisely locate the most appro
     <img src="images/t2.png" alt="Main results on TACoS" width="550">
 </div>
 
-## Dataset
-Please download the visual features from the official website of ActivityNet: [Official C3D Feature](http://activity-net.org/download.html). And you can download preprocessed annotation files [here](https://github.com/baopj/DenseEventsGrounding/blob/main/DepNet_ANet_Release/files_/acnet_annot.zip). 
+### Data Preparation
+Please download the visual features from [here](https://pan.baidu.com/s/1_JiOUG3FKkKXij-0kVfkuA?pwd=ryeh) and save it to the `data/` folder. We expect the directory structure to be the following:
+
+```
+data
+├── activitynet
+│   ├── sub_activitynet_v1-3.c3d.hdf5
+│   ├── glove.pkl
+│   ├── train_data.json
+│   ├── val_data.json
+│   ├── test_data.json
+
+```
 
 ## Prerequisites
 - python 3.5
