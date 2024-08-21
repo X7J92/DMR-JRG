@@ -57,7 +57,7 @@ Use the following commands for test:
 ```
 cd moment_localization && export CUDA_VISIBLE_DEVICES=0
 python best_test.py --verbose --cfg ../experiments/dense_activitynet/acnet.yaml
-
+```
 ##e-mail
 
 call me: mengzhaowangg@163.com
