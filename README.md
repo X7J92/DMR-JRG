@@ -58,11 +58,8 @@ Use the following commands for test:
 cd moment_localization && export CUDA_VISIBLE_DEVICES=0
 python best_test.py --verbose --cfg ../experiments/dense_activitynet/acnet.yaml
 ```
-## Performance
 
-We also provide several checkpoints for reproducing our experiment results. You can download them from [google drive](https://drive.google.com/drive/folders/1vvr4kYI7xGklOdgyQU5L34W2ZxRQzspK?usp=sharing), put them under ```save/``` and use the above scripts to evaluate them.
-
-The result files are at: [google drive](https://drive.google.com/drive/folders/1EZuwAgiRKu8TW-_p9l9kMzAzEAEwSfee?usp=sharing)
+We also provide several checkpoints for reproducing our experiment results. You can download them from [baidu drive](https://pan.baidu.com/s/1xWC90AIDImVJfKV9qcah4Q), put them under ```save/``` and use the above scripts to evaluate them.
 
 
 ## e-mail
