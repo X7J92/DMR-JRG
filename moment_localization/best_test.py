@@ -13,7 +13,7 @@ import torch
 import torch.backends.cudnn as cudnn
 from torch.utils.data import DataLoader
 import sys
-sys.path.insert(0, '/home/l/data_2/wmz/1_c/DepNet_ANet_Release')
+sys.path.insert(0, '/home/l/data_1/wmz3/DepNet_ANet_Release')
 from  lib.models.loss_w import weakly_supervised_loss
 import matplotlib.pyplot as plt
 import torch.optim as optim
@@ -34,134 +34,170 @@ from  lib.models.loss import bce_rescale_loss
 torch.manual_seed(0)
 torch.cuda.manual_seed(0)
 torch.autograd.set_detect_anomaly(True)
+import numpy as np
 import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+import torch
+from sklearn.manifold import TSNE
+import torch
+# def calculate_sentence_rank_accuracy_with_grounding(text_features, video_features, video_ids, input_video_ids,
+#                                                     sentences_per_paragraph_tensor, grounding_masks):
+#     # Calculate text-video similarity scores
+#     similarity_scores = torch.matmul(text_features, video_features.T)
+#
+#     # Extract core video IDs from the video library
+#     core_video_ids = video_ids
+#
+#     # Adjust input video IDs to match video library IDs
+#     true_video_ids = input_video_ids
+#
+#     # Initialize counters for different IOU levels and rank thresholds
+#     rank1_count = [0, 0, 0]  # for IOU=0.3, 0.5, 0.7
+#     rank5_count = [0, 0, 0]
+#     rank10_count = [0, 0, 0]
+#     rank100_count = [0, 0, 0]
+#     total_sentences = sentences_per_paragraph_tensor.sum().item()  # Convert tensor sum to scalar
+#
+#     sentence_index = 0  # Track sentence index across paragraphs
+#
+#     for i, true_id in enumerate(true_video_ids):
+#         # Get similarity scores and sort indices in descending order
+#         sorted_indices = torch.argsort(similarity_scores[i], descending=True)
+#         sorted_video_ids = [core_video_ids[idx] for idx in sorted_indices]
+#
+#         # Get the number of sentences in the current paragraph and ensure it's an integer
+#         sentence_count = int(sentences_per_paragraph_tensor[i].item())
+#
+#         # Check if the correct video is within the top 1, 5, 10, or 100 and adjust counts based on grounding accuracy
+#         top_1 = sorted_video_ids[:1]
+#         top_5 = sorted_video_ids[:5]
+#         top_10 = sorted_video_ids[:10]
+#         top_100 = sorted_video_ids[:100]
+#
+#         for j in range(sentence_count):
+#             for k in range(3):  # Check each IOU level
+#                 if true_id in top_1 and grounding_masks[k, 0, sentence_index + j]:
+#                     rank1_count[k] += 1
+#                 if true_id in top_5 and grounding_masks[k, 0, sentence_index + j]:
+#                     rank5_count[k] += 1
+#                 if true_id in top_10 and grounding_masks[k, 0, sentence_index + j]:
+#                     rank10_count[k] += 1
+#                 if true_id in top_100 and grounding_masks[k, 0, sentence_index + j]:
+#                     rank100_count[k] += 1
+#
+#         sentence_index += sentence_count  # Update sentence index for next iteration
+#
+#     # Calculate accuracy for each IOU level at each rank threshold, convert to percentage
+#     rank1_accuracy = [(count / total_sentences) * 100 for count in rank1_count]  # Multiply by 100 for percentage
+#     rank5_accuracy = [(count / total_sentences) * 100 for count in rank5_count]  # Multiply by 100 for percentage
+#     rank10_accuracy = [(count / total_sentences) * 100 for count in rank10_count]  # Multiply by 100 for percentage
+#     rank100_accuracy = [(count / total_sentences) * 100 for count in rank100_count]  # Multiply by 100 for percentage
+#
+#     return rank1_accuracy, rank5_accuracy, rank10_accuracy, rank100_accuracy
+import torch
 
-
-def calculate_rank_and_localization_accuracy(text_features, video_features, sentences_per_paragraph, grounding_masks):
+def calculate_sentence_rank_accuracy_with_grounding(text_features, video_features, video_ids, input_video_ids,
+                                                    sentences_per_paragraph_tensor, grounding_masks):
     # Calculate text-video similarity scores
     similarity_scores = torch.matmul(text_features, video_features.T)
 
-    # Initialize results storage for each rank level and IOU threshold
-    results = {f'Rank@{k}': {'IOU=0.3': 0, 'IOU=0.5': 0, 'IOU=0.7': 0} for k in [1, 5, 10, 100]}
-    results['total_sentences'] = 0
-
-    # Traverse each paragraph to calculate ranking and localization accuracy
-    sentence_index = 0
-    for i in range(len(text_features)):
-        # Get similarity scores for the paragraph and sort them in descending order
-        scores = similarity_scores[i]
-        sorted_indices = torch.argsort(scores, descending=True)
-
-        # Identify the indices that meet rank criteria
-        is_rank1 = sorted_indices[0] == i
-        is_rank5 = i in sorted_indices[:5]
-        is_rank10 = i in sorted_indices[:10]
-        is_rank100 = i in sorted_indices[:100]
-
-        # Number of sentences in the current paragraph
-        # num_sentences = sentences_per_paragraph[i]
-        num_sentences = int(sentences_per_paragraph[i].item())
-        # Apply rank results to each sentence in the paragraph based on localization masks
-        for j in range(num_sentences):
-            for k, rank_criteria in enumerate([is_rank1, is_rank5, is_rank10, is_rank100]):
-                rank_label = f'Rank@{[1, 5, 10, 100][k]}'
-                if rank_criteria:
-                    for idx, iou in enumerate(['0.3', '0.5', '0.7']):
-                        if grounding_masks[idx, 0, sentence_index + j]:
-                            results[rank_label][f'IOU={iou}'] += 1
-
-        # Update the total count of processed sentences
-        sentence_index += num_sentences
-        results['total_sentences'] += num_sentences
-
-    # Calculate final accuracy percentages
-    for rank_label in results.keys():
-        if rank_label != 'total_sentences':
-            for iou in ['0.3', '0.5', '0.7']:
-                if results['total_sentences'] > 0:
-                    results[rank_label][f'IOU={iou}'] = (results[rank_label][f'IOU={iou}'] / results[
-                        'total_sentences']) * 100
-
-    return results
 
 
 
 
+    # Extract core video IDs from the video library
+    core_video_ids = [vid.split('.')[0] for vid in video_ids]
+
+    # Adjust input video IDs to match video library IDs
+    true_video_ids = [vid.split('.')[0] for vid in input_video_ids]
+
+    # Initialize counters for different IOU levels and rank thresholds
+    rank1_count = [0, 0, 0]  # for IOU=0.3, 0.5, 0.7
+    rank5_count = [0, 0, 0]
+    rank10_count = [0, 0, 0]
+    rank100_count = [0, 0, 0]
+    total_sentences = sentences_per_paragraph_tensor.sum().item()  # Convert tensor sum to scalar
+
+    sentence_index = 0  # Track sentence index across paragraphs
+
+    for i, true_id in enumerate(true_video_ids):
+        # Get similarity scores and sort indices in descending order
+        sorted_indices = torch.argsort(similarity_scores[i], descending=True)
+        sorted_video_ids = [core_video_ids[idx] for idx in sorted_indices]
+
+        # Get the number of sentences in the current paragraph and ensure it's an integer
+        sentence_count = int(sentences_per_paragraph_tensor[i].item())
+
+        # Determine if the paragraph's retrieval was correct
+        retrieval_correct = true_id in sorted_video_ids[:100]  # Assuming Rank-100 is the largest context we consider
+
+        for j in range(sentence_count):
+            # Check each IOU level
+            for k in range(3):
+                if retrieval_correct and true_id in sorted_video_ids[:1] and grounding_masks[k, 0, sentence_index + j]:
+                    rank1_count[k] += 1
+                if retrieval_correct and true_id in sorted_video_ids[:5] and grounding_masks[k, 0, sentence_index + j]:
+                    rank5_count[k] += 1
+                if retrieval_correct and true_id in sorted_video_ids[:10] and grounding_masks[k, 0, sentence_index + j]:
+                    rank10_count[k] += 1
+                if retrieval_correct and true_id in sorted_video_ids[:100] and grounding_masks[k, 0, sentence_index + j]:
+                    rank100_count[k] += 1
+
+        sentence_index += sentence_count  # Update sentence index for next iteration
+
+    # Calculate accuracy for each IOU level at each rank threshold, convert to percentage
+    rank1_accuracy = [(count / total_sentences) * 100 for count in rank1_count]  # Multiply by 100 for percentage
+    rank5_accuracy = [(count / total_sentences) * 100 for count in rank5_count]
+    rank10_accuracy = [(count / total_sentences) * 100 for count in rank10_count]
+    rank100_accuracy = [(count / total_sentences) * 100 for count in rank100_count]
+
+    return rank1_accuracy, rank5_accuracy, rank10_accuracy, rank100_accuracy
+
+def calculate_sentence_rank_accuracy(text_features, video_features, video_ids, input_video_ids, sentences_per_paragraph_tensor):
+    # 计算文本和视频之间的相似度分数
+    similarity_scores = torch.matmul(text_features, video_features.T)
+
+    # 从视频库文件名中提取核心视频ID
+    core_video_ids = video_ids
+
+    # 从输入的视频ID中移除_后面的部分以匹配视频库ID
+    true_video_ids = input_video_ids
+
+    # 初始化计数器
+    rank1_count = 0
+    rank5_count = 0
+    rank10_count = 0
+    rank100_count = 0
+    total_sentences = sentences_per_paragraph_tensor.sum().item()  # 将张量总和转换为标量
+
+    for i, true_id in enumerate(true_video_ids):
+        # 获取相似度分数，排序，找到最高分数的视频索引
+        sorted_indices = torch.argsort(similarity_scores[i], descending=True)
+        sorted_video_ids = [core_video_ids[idx] for idx in sorted_indices]
+
+        # 句子数量从张量中获取
+        sentence_count = sentences_per_paragraph_tensor[i].item()
+
+        # 检查正确的视频是否在排序中的前1, 5, 10, 100位
+        if true_id in sorted_video_ids[:1]:
+            rank1_count += sentence_count
+        if true_id in sorted_video_ids[:5]:
+            rank5_count += sentence_count
+        if true_id in sorted_video_ids[:10]:
+            rank10_count += sentence_count
+        if true_id in sorted_video_ids[:100]:
+            rank100_count += sentence_count
+
+    rank1_accuracy = rank1_count / total_sentences
+    rank5_accuracy = rank5_count / total_sentences
+    rank10_accuracy = rank10_count / total_sentences
+    rank100_accuracy = rank100_count / total_sentences
+
+    return rank1_accuracy, rank5_accuracy, rank10_accuracy, rank100_accuracy
 
 
 
-def calculate_sentence_ranks_grounding(similarity_matrix, num_sentences_per_paragraph, iou_masks):
-    # 段落级别的排名计算
-    paragraph_ranks = []
-    num_paragraphs = similarity_matrix.shape[0]
-
-    for i in range(num_paragraphs):
-        sims = similarity_matrix[i]
-        sorted_indices = torch.argsort(sims, descending=True)
-        target_index = sorted_indices == i
-        rank = torch.where(target_index)[0] + 1
-        num_sentences = int(num_sentences_per_paragraph[i].item())  # 将其转换为整数
-        paragraph_ranks.extend([rank.item()] * num_sentences)  # 确保乘法操作正确
-
-
-    # 生成总句子级排名列表
-    ranks = torch.tensor(paragraph_ranks)
-
-    # 创建DataFrame来保存计算结果
-    results = {}
-
-    # 定义IOU阈值列表
-    iou_thresholds = [0.3, 0.5, 0.7]
-    rank_levels = [1, 5, 10, 100]
-
-    # 总句子数
-    total_sentences = int(num_sentences_per_paragraph.sum().item())
-
-    for rank_level in rank_levels:
-        results[f"Rank@{rank_level}"] = {}
-        for idx, iou in enumerate(iou_thresholds):
-            iou_mask = iou_masks[idx, 0, :total_sentences]
-            valid_ranks = ranks[iou_mask]
-            results[f"Rank@{rank_level}"][f"IOU={iou}"] = (torch.sum(
-                valid_ranks <= rank_level).item() / ranks.numel()) * 100
-
-    return results
-
-
-
-
-
-def calculate_sentence_ranks(similarity_matrix, num_sentences_per_paragraph):
-    # 段落级别的排名计算
-    paragraph_ranks = []
-    num_paragraphs = similarity_matrix.shape[0]
-    tt=num_sentences_per_paragraph.sum()
-    # print('oooooo')
-    # print(tt)
-    # print('oooooo')
-    for i in range(num_paragraphs):
-        # 获取第i个段落与所有视频的相似度
-        sims = similarity_matrix[i]
-        # 对相似度进行降序排列并获取索引
-        sorted_indices = torch.argsort(sims, descending=True)
-        # 找到真正匹配的视频索引
-        target_index = sorted_indices == i
-        # 获取正确匹配视频的排名
-        rank = torch.where(target_index)[0] + 1
-        # 段落中的每个句子都被分配相同的排名
-        # paragraph_ranks.extend([rank.item()] * num_sentences_per_paragraph[i].item())
-        num_sentences = int(num_sentences_per_paragraph[i].item())  # 将其转换为整数
-        paragraph_ranks.extend([rank.item()] * num_sentences)  # 确保乘法操作正确
-
-
-    # 计算句子级Rank-1, Rank-5, Rank-10, Rank-100
-    ranks = torch.tensor(paragraph_ranks)
-    total_sentences = num_sentences_per_paragraph.sum().item()  # 计算所有句子的总数
-    rank1 = torch.sum(ranks <= 1).item() / total_sentences
-    rank5 = torch.sum(ranks <= 5).item() / total_sentences
-    rank10 = torch.sum(ranks <= 10).item() / total_sentences
-    rank100 = torch.sum(ranks <= 100).item() / total_sentences
-    return rank1, rank5, rank10, rank100
 
 import os
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
@@ -170,7 +206,7 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Train localization network')
 
     # general
-    parser.add_argument('--cfg', help='experiment configure file name', default='../experiments/dense_activitynet/acnet.yaml',required=False, type=str)
+    parser.add_argument('--cfg', help='experiment configure file name', default='/home/l/data_1/wmz3/DepNet_ANet_Release/experiments/dense_activitynet/acnet.yaml',required=False, type=str)
     args, rest = parser.parse_known_args()
 
     # update config
@@ -256,8 +292,10 @@ if __name__ == '__main__':
         # sentence_mask: (b,K,1) tensor
         # map_gt: (b,K,1,64,64) tensor
 
-        video_idxs = sample['batch_video_idxs']
         anno_idxs = sample['batch_anno_idxs']
+        video_idxs = sample['batch_video_idxs']
+
+        # print(video_idxs)
         textual_input = sample['batch_word_vectors'].cuda()
         textual_mask = sample['batch_txt_mask'].cuda()
         sentence_mask = sample['batch_sentence_mask'].cuda()  # new
@@ -299,7 +337,7 @@ if __name__ == '__main__':
         vg_hs_v1=None if model.training else vg_hs_v
 
 
-        return loss_value, sorted_times, vg_hs_video1,vg_hs_t1,vg_hs_v1,sentence_number,video_idxs
+        return loss_value, sorted_times, vg_hs_video1,vg_hs_t1,vg_hs_v1,sentence_number, video_idxs
 
 
     def get_proposal_results(scores, durations):
@@ -331,6 +369,7 @@ if __name__ == '__main__':
         state['sorted_text_list'] = []
         state['sorted_video_l_list'] = []
         state['sentence_number_list'] = []
+        state['sorted_video_id_list'] = []
         if config.VERBOSE:
             if state['split'] == 'test':
                 state['progress_bar'] = tqdm(total=math.ceil(len(test_dataset)/config.TEST.BATCH_SIZE))
@@ -350,6 +389,8 @@ if __name__ == '__main__':
         sorted_texts=state['text'].cpu().detach()
         sorted_videos_l = state['video_l'].cpu().detach()
         sorted_sentence_number=state['sentence_number'].cpu().detach()
+        sorted_video_idxs = state['video_idxs']
+
         # 假设state字典已经被初始化，并且有sorted_video_list和sorted_text_list键
         # state = {'sorted_video_list': [], 'sorted_text_list': []}
 
@@ -359,12 +400,13 @@ if __name__ == '__main__':
             text_vector = sorted_texts[batch_index]
             video_l_vector=sorted_videos_l[batch_index]
             sorted_sentence_number_vector=sorted_sentence_number[batch_index]
+            sorted_video_idxs1= sorted_video_idxs[batch_index]
             # 将这个向量追加到相应的列表中
             state['sorted_video_list'].append(video_vector)
             state['sorted_text_list'].append(text_vector)
             state['sorted_video_l_list'].append(video_l_vector)
             state['sentence_number_list'].append(sorted_sentence_number_vector)
-
+            state['sorted_video_id_list'].append(sorted_video_idxs1)
     def on_test_end(state):
         #############################################################################定位评价指标###################################################################################
         annotations = state['iterator'].dataset.annotations
@@ -376,61 +418,69 @@ if __name__ == '__main__':
         sorted_video_list_all = state['sorted_video_list']
         sorted_video_l_list_all = state['sorted_video_l_list']
         sorted_sentence_number_list_all = state['sentence_number_list']
+        sorted_video_id_list_all = state['sorted_video_id_list']
+        # print(sorted_video_id_list_all)
+
+
 
         sorted_video_l_list_tensor = torch.stack(sorted_video_l_list_all, dim=0)
         sorted_text_list_tensor = torch.stack(sorted_text_list_all, dim=0)
         sorted_video_list_tensor = torch.stack(sorted_video_list_all, dim=0)
         sorted_sentence_number_list_tensor = torch.stack(sorted_sentence_number_list_all, dim=0)
-
-        sims_l = torch.matmul(sorted_video_l_list_tensor, sorted_text_list_tensor.T)
-        rank1, rank5, rank10, rank100 = calculate_sentence_ranks(sims_l, sorted_sentence_number_list_tensor)
-        # 将结果以表格形式展示
-        results1 = pd.DataFrame({
-            "Rank-1": [rank1 * 100],
-            "Rank-5": [rank5 * 100],
-            "Rank-10": [rank10 * 100],
-            "Rank-100": [rank100 * 100]
-        })
-        print('使用定位增强检索特征进行检索相似度计算')
-        print(results1)
+##############################################################################################################################
+        sorted_video_list_tensor_25= sorted_video_list_tensor
+        sorted_video_id_list_all_25=sorted_video_id_list_all
+        rank1, rank5,rank10, rank100 = calculate_sentence_rank_accuracy(sorted_text_list_tensor, sorted_video_list_tensor_25, sorted_video_id_list_all_25, sorted_video_id_list_all,
+                                                           sorted_sentence_number_list_tensor)
+        print(f'Rank-1 Accuracy: {rank1:.2f}')
+        print(f'Rank-5 Accuracy: {rank5:.2f}')
+        print(f'Rank-10 Accuracy: {rank10:.2f}')
+        print(f'Rank-100 Accuracy: {rank100:.2f}')
+###########################################################################################################################
         print(
-            '---------------------------------------------------------------------------------------------------------')
-        sims_g = torch.matmul(sorted_video_list_tensor, sorted_text_list_tensor.T)
-        rank1, rank5, rank10, rank100 = calculate_sentence_ranks(sims_g, sorted_sentence_number_list_tensor)
-        results2 = pd.DataFrame({
-            "Rank-1": [rank1 * 100],
-            "Rank-5": [rank5 * 100],
-            "Rank-10": [rank10 * 100],
-            "Rank-100": [rank100 * 100]
-        })
-        print('使用全局特征进行检索相似度计算')
-        print(results2)
+            '################################################################################## 检索加定位评价指标############################################################################')
 
-        print(
-            '################################################################################## 检索加定位评价指标###########################################################################')
-        r_l = calculate_sentence_ranks_grounding(sims_l, sorted_sentence_number_list_tensor, grounding_mask)
-        print('使用定位增强检索特征进行检索定位')
-        for rank, data in r_l.items():
-            df = pd.DataFrame(data, index=[rank])
-            print(df)
-            print("\n" + "=" * 40 + "\n")  # 添加分隔线以区分不同的表格
+        # 提取前100个特征
+        texts = sorted_text_list_tensor[:100]
+        videos = sorted_video_list_tensor_25[:100]
 
-        print(
-            '---------------------------------------------------------------------------------------------------------')
+        # 合并这些特征以用于t-SNE
+        combined_features = np.vstack([texts, videos])
 
-        r_g = calculate_sentence_ranks_grounding(sims_g, sorted_sentence_number_list_tensor, grounding_mask)
-        print('使用全局特征进行检索定位')
-        for rank, data in r_g.items():
-            df = pd.DataFrame(data, index=[rank])
-            print(df)
-            print("\n" + "=" * 40 + "\n")  # 添加分隔线以区分不同的表格
+        # 运行t-SNE
+        tsne = TSNE(n_components=2, random_state=42)
+        reduced_features = tsne.fit_transform(combined_features)
+
+        # 可视化
+        fig, ax = plt.subplots()
+
+        # 生成100种不同的颜色
+        colors = [plt.cm.hsv(i / 100) for i in range(100)]
+
+        # 绘制文本特征
+        ax.scatter(reduced_features[:100, 0], reduced_features[:100, 1], c=colors, marker='s', s=50, label='Texts')
+
+        # 绘制视频特征
+        ax.scatter(reduced_features[100:, 0], reduced_features[100:, 1], c=colors, marker='^', s=50, label='Videos')
+
+        # 添加图例（可选）
+        ax.legend()
+
+        # 保存图像
+        plt.savefig('/home/l/data_2/wmz/1_c/DepNet_ANet_Release/tsne_visualization.png')
 
 
-        print(
-            '################################################################################## 检索加定位评价指标2############################################################################')
 
-        results = calculate_rank_and_localization_accuracy(sorted_text_list_tensor, sorted_video_list_tensor, sorted_sentence_number_list_tensor, grounding_mask)
-        print(results)
+
+
+
+        rank1_acc, rank5_acc,rank10_acc, rank100_acc = calculate_sentence_rank_accuracy_with_grounding(sorted_text_list_tensor, sorted_video_list_tensor_25, sorted_video_id_list_all_25, sorted_video_id_list_all,
+                                                           sorted_sentence_number_list_tensor,grounding_mask)
+        print(f'Rank-1 Accuracy at IOU=0.3, 0.5, 0.7: {rank1_acc}')
+        print(f'Rank-5 Accuracy at IOU=0.3, 0.5, 0.7: {rank5_acc}')
+        print(f'Rank-10 Accuracy at IOU=0.3, 0.5, 0.7: {rank10_acc}')
+        print(f'Rank-100 Accuracy at IOU=0.3, 0.5, 0.7: {rank100_acc}')
+
 
 
         if config.VERBOSE:
@@ -441,3 +491,5 @@ if __name__ == '__main__':
     engine.hooks['on_test_forward'] = on_test_forward
     engine.hooks['on_test_end'] = on_test_end
     engine.test(network, dataloader,split='test')
+
+
