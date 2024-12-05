@@ -408,81 +408,14 @@ if __name__ == '__main__':
             state['sentence_number_list'].append(sorted_sentence_number_vector)
             state['sorted_video_id_list'].append(sorted_video_idxs1)
     def on_test_end(state):
-        #############################################################################定位评价指标###################################################################################
-        annotations = state['iterator'].dataset.annotations
-        state['Rank@N,mIoU@M'], state['miou'], grounding_mask = eval.eval_predictions(state['sorted_segments_list'],
-                                                                                      annotations, verbose=False)
-        print(
-            '################################################################################## 检索评价指标############################################################################')
-        sorted_text_list_all = state['sorted_text_list']
-        sorted_video_list_all = state['sorted_video_list']
-        sorted_video_l_list_all = state['sorted_video_l_list']
-        sorted_sentence_number_list_all = state['sentence_number_list']
-        sorted_video_id_list_all = state['sorted_video_id_list']
-        # print(sorted_video_id_list_all)
-
-
-
-        sorted_video_l_list_tensor = torch.stack(sorted_video_l_list_all, dim=0)
-        sorted_text_list_tensor = torch.stack(sorted_text_list_all, dim=0)
-        sorted_video_list_tensor = torch.stack(sorted_video_list_all, dim=0)
-        sorted_sentence_number_list_tensor = torch.stack(sorted_sentence_number_list_all, dim=0)
-##############################################################################################################################
-        sorted_video_list_tensor_25= sorted_video_list_tensor
-        sorted_video_id_list_all_25=sorted_video_id_list_all
-        rank1, rank5,rank10, rank100 = calculate_sentence_rank_accuracy(sorted_text_list_tensor, sorted_video_list_tensor_25, sorted_video_id_list_all_25, sorted_video_id_list_all,
-                                                           sorted_sentence_number_list_tensor)
-        print(f'Rank-1 Accuracy: {rank1:.2f}')
-        print(f'Rank-5 Accuracy: {rank5:.2f}')
-        print(f'Rank-10 Accuracy: {rank10:.2f}')
-        print(f'Rank-100 Accuracy: {rank100:.2f}')
-###########################################################################################################################
         print(
             '################################################################################## 检索加定位评价指标############################################################################')
-
-        # 提取前100个特征
-        texts = sorted_text_list_tensor[:100]
-        videos = sorted_video_list_tensor_25[:100]
-
-        # 合并这些特征以用于t-SNE
-        combined_features = np.vstack([texts, videos])
-
-        # 运行t-SNE
-        tsne = TSNE(n_components=2, random_state=42)
-        reduced_features = tsne.fit_transform(combined_features)
-
-        # 可视化
-        fig, ax = plt.subplots()
-
-        # 生成100种不同的颜色
-        colors = [plt.cm.hsv(i / 100) for i in range(100)]
-
-        # 绘制文本特征
-        ax.scatter(reduced_features[:100, 0], reduced_features[:100, 1], c=colors, marker='s', s=50, label='Texts')
-
-        # 绘制视频特征
-        ax.scatter(reduced_features[100:, 0], reduced_features[100:, 1], c=colors, marker='^', s=50, label='Videos')
-
-        # 添加图例（可选）
-        ax.legend()
-
-        # 保存图像
-        plt.savefig('/home/l/data_2/wmz/1_c/DepNet_ANet_Release/tsne_visualization.png')
-
-
-
-
-
-
         rank1_acc, rank5_acc,rank10_acc, rank100_acc = calculate_sentence_rank_accuracy_with_grounding(sorted_text_list_tensor, sorted_video_list_tensor_25, sorted_video_id_list_all_25, sorted_video_id_list_all,
                                                            sorted_sentence_number_list_tensor,grounding_mask)
         print(f'Rank-1 Accuracy at IOU=0.3, 0.5, 0.7: {rank1_acc}')
         print(f'Rank-5 Accuracy at IOU=0.3, 0.5, 0.7: {rank5_acc}')
         print(f'Rank-10 Accuracy at IOU=0.3, 0.5, 0.7: {rank10_acc}')
         print(f'Rank-100 Accuracy at IOU=0.3, 0.5, 0.7: {rank100_acc}')
-
-
-
         if config.VERBOSE:
             state['progress_bar'].close()
 
