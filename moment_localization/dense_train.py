@@ -421,10 +421,10 @@ if __name__ == '__main__':
             state['sorted_video_l_list'].append(video_l_vector)
             state['sentence_number_list'].append(sorted_sentence_number_vector)
     def on_test_end(state):
-        #############################################################################定位评价指标###################################################################################
+
         annotations = state['iterator'].dataset.annotations
         state['Rank@N,mIoU@M'], state['miou'],grounding_mask = eval.eval_predictions(state['sorted_segments_list'], annotations, verbose=False)
-        print('################################################################################## 检索评价指标############################################################################')
+       
         sorted_text_list_all = state['sorted_text_list']
         sorted_video_list_all = state['sorted_video_list']
         sorted_video_l_list_all = state['sorted_video_l_list']
@@ -437,17 +437,6 @@ if __name__ == '__main__':
 
         sims_l = torch.matmul(sorted_video_l_list_tensor, sorted_text_list_tensor.T)
         rank1, rank5, rank10, rank100 = calculate_sentence_ranks(sims_l, sorted_sentence_number_list_tensor)
-        # 将结果以表格形式展示
-        results1 = pd.DataFrame({
-            "Rank-1": [rank1 * 100],
-            "Rank-5": [rank5 * 100],
-            "Rank-10": [rank10 * 100],
-            "Rank-100": [rank100 * 100]
-        })
-        print('使用定位增强检索特征进行检索相似度计算')
-        print(results1)
-        print('---------------------------------------------------------------------------------------------------------')
-        sims_g = torch.matmul(sorted_video_list_tensor, sorted_text_list_tensor.T)
         rank1, rank5, rank10, rank100 = calculate_sentence_ranks(sims_g, sorted_sentence_number_list_tensor)
         results2 = pd.DataFrame({
             "Rank-1": [rank1 * 100],
@@ -455,22 +444,9 @@ if __name__ == '__main__':
             "Rank-10": [rank10 * 100],
             "Rank-100": [rank100 * 100]
         })
-        print('使用全局特征进行检索相似度计算')
-        print(results2)
-
         print('################################################################################## 检索加定位评价指标###########################################################################')
         r_l = calculate_sentence_ranks_grounding(sims_l, sorted_sentence_number_list_tensor, grounding_mask)
-        print('使用定位增强检索特征进行检索定位')
         for rank, data in r_l.items():
-            df = pd.DataFrame(data, index=[rank])
-            print(df)
-            print("\n" + "=" * 40 + "\n")  # 添加分隔线以区分不同的表格
-
-        print('---------------------------------------------------------------------------------------------------------')
-
-        r_g = calculate_sentence_ranks_grounding(sims_g, sorted_sentence_number_list_tensor, grounding_mask)
-        print('使用全局特征进行检索定位')
-        for rank, data in r_g.items():
             df = pd.DataFrame(data, index=[rank])
             print(df)
             print("\n" + "=" * 40 + "\n")  # 添加分隔线以区分不同的表格
