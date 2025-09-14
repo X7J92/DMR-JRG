@@ -1,10 +1,3 @@
-## Prerequisites
-- python 3.5
-- pytorch 1.4.0
-- torchtext
-- easydict
-- terminaltables
-
 ## Training
 Use the following commands for training:
 ```
